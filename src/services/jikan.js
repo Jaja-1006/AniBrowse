@@ -1,4 +1,4 @@
-const BASE_URL = "https://api.jikan.moe/v4";
+const BASE_URL = "https://api.jikan.moe/v4/top/anime?type=ona";
 
 async function request(path, signal) {
   try {
