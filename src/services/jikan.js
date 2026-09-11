@@ -1,51 +1,204 @@
-const BASE_URL = "https://api.jikan.moe/v4/top/anime?type=ona";
+const JIKAN_BASE = "https://api.jikan.moe/v4";
+const ANILIST_BASE = "https://graphql.anilist.co";
+const KITSU_BASE = "https://kitsu.io/api/edge";
 
-async function request(path, signal) {
+function normalizeAnime(item, source) {
+  if (source === "jikan") return item;
+
+  if (source === "anilist") {
+    return {
+      mal_id: item.id,
+      title: item.title?.english || item.title?.userPreferred || item.title?.romaji,
+      title_english: item.title?.english,
+      title_japanese: item.title?.native,
+      images: {
+        jpg: {
+          image_url: item.coverImage?.large || item.coverImage?.medium,
+          large_image_url: item.coverImage?.extraLarge || item.coverImage?.large
+        }
+      },
+      score: item.averageScore ? item.averageScore / 10 : null,
+      type: item.format,
+      episodes: item.episodes,
+      status: item.status,
+      synopsis: item.description ? item.description.replace(/<[^>]*>?/gm, '') : "",
+      genres: item.genres ? item.genres.map((g) => ({ name: g })) : []
+    };
+  }
+
+  if (source === "kitsu") {
+    const attr = item.attributes || {};
+    return {
+      mal_id: item.id,
+      title: attr.canonicalTitle || attr.titles?.en || attr.titles?.en_jp,
+      title_english: attr.titles?.en,
+      title_japanese: attr.titles?.ja_jp,
+      images: {
+        jpg: {
+          image_url: attr.posterImage?.small || attr.posterImage?.original,
+          large_image_url: attr.posterImage?.large || attr.posterImage?.original
+        }
+      },
+      score: attr.averageRating ? parseFloat((attr.averageRating / 10).toFixed(1)) : null,
+      type: attr.subtype?.toUpperCase(),
+      episodes: attr.episodeCount,
+      status: attr.status,
+      synopsis: attr.synopsis || "",
+      genres: []
+    };
+  }
+
+  return item;
+}
+
+async function queryAniList(query, variables, signal) {
+  const response = await fetch(ANILIST_BASE, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ query, variables }),
+    signal
+  });
+  if (!response.ok) throw new Error(`AniList error status ${response.status}`);
+  const json = await response.json();
+  return json.data;
+}
+
+async function fetchJikan(path, signal) {
+  const response = await fetch(`${JIKAN_BASE}${path}`, { signal });
+  if (!response.ok) throw new Error(`Jikan failed: ${response.status}`);
+  return await response.json();
+}
+
+async function fetchWithFallback(jikanFn, aniListFn, kitsuFn, signal) {
   try {
-    const response = await fetch(`${BASE_URL}${path}`, { signal });
+    return await jikanFn();
+  } catch (jikanError) {
+    if (jikanError.name === "AbortError") throw jikanError;
+    console.warn("Jikan API failed. Retrying with AniList...", jikanError.message);
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        throw new Error("API rate-limited. Please wait a moment and try again.");
+    try {
+      return await aniListFn();
+    } catch (aniListError) {
+      if (aniListError.name === "AbortError") throw aniListError;
+      console.warn("AniList API failed. Retrying with Kitsu...", aniListError.message);
+
+      try {
+        return await kitsuFn();
+      } catch (kitsuError) {
+        if (kitsuError.name === "AbortError") throw kitsuError;
+        throw new Error("All anime API endpoints are currently unavailable. Please try again later.");
       }
-      throw new Error(`API request failed with status ${response.status}`);
     }
-
-    const json = await response.json();
-    return json;
-  } catch (error) {
-
-    if (error.name === "AbortError") {
-      return null; 
-    }
-    throw error;
   }
 }
 
+
 export function getTopAnime(signal) {
-  return request("/top/anime?limit=12&sfw=true", signal);
+  return fetchWithFallback(
+    async () => fetchJikan("/top/anime?limit=12&sfw=true", signal),
+    async () => {
+      const gql = `
+        query {
+          Page(page: 1, perPage: 12) {
+            media(type: ANIME, sort: POPULARITY_DESC) {
+              id title { english romaji native } coverImage { large extraLarge }
+              averageScore format episodes status description genres
+            }
+          }
+        }`;
+      const res = await queryAniList(gql, {}, signal);
+      return { data: res.Page.media.map((item) => normalizeAnime(item, "anilist")) };
+    },
+    async () => {
+      const res = await fetch(`${KITSU_BASE}/anime?page[limit]=12&sort=-userCount`, { signal });
+      if (!res.ok) throw new Error("Kitsu failed");
+      const json = await res.json();
+      return { data: json.data.map((item) => normalizeAnime(item, "kitsu")) };
+    },
+    signal
+  );
 }
 
 export function getSeasonalAnime(signal) {
-  return request("/seasons/now?limit=12&sfw=true", signal);
+  return fetchWithFallback(
+    async () => fetchJikan("/seasons/now?limit=12&sfw=true", signal),
+    async () => {
+      const gql = `
+        query {
+          Page(page: 1, perPage: 12) {
+            media(type: ANIME, season: SUMMER, seasonYear: 2026, sort: POPULARITY_DESC) {
+              id title { english romaji native } coverImage { large extraLarge }
+              averageScore format episodes status description genres
+            }
+          }
+        }`;
+      const res = await queryAniList(gql, {}, signal);
+      return { data: res.Page.media.map((item) => normalizeAnime(item, "anilist")) };
+    },
+    async () => {
+      const res = await fetch(`${KITSU_BASE}/anime?page[limit]=12&sort=-startDate`, { signal });
+      if (!res.ok) throw new Error("Kitsu failed");
+      const json = await res.json();
+      return { data: json.data.map((item) => normalizeAnime(item, "kitsu")) };
+    },
+    signal
+  );
 }
 
 export function searchAnime({ query = "", page = 1, genre = "", sort = "popularity" } = {}, signal) {
-  const params = new URLSearchParams();
-
-  if (query.trim()) params.append("q", query.trim());
-  if (genre) params.append("genres", genre);
-
-  params.append("page", String(page));
-  params.append("limit", "12");
-  params.append("sfw", "true");
-  params.append("order_by", sort);
-  params.append("sort", "desc");
-
-  return request(`/anime?${params.toString()}`, signal);
+  return fetchWithFallback(
+    async () => {
+      const params = new URLSearchParams({ page: String(page), limit: "12", sfw: "true", sort: "desc" });
+      if (query.trim()) params.append("q", query.trim());
+      if (genre) params.append("genres", genre);
+      params.append("order_by", sort);
+      return fetchJikan(`/anime?${params.toString()}`, signal);
+    },
+    async () => {
+      const gql = `
+        query ($search: String, $page: Int) {
+          Page(page: $page, perPage: 12) {
+            media(type: ANIME, search: $search) {
+              id title { english romaji native } coverImage { large extraLarge }
+              averageScore format episodes status description genres
+            }
+          }
+        }`;
+      const res = await queryAniList(gql, { search: query || undefined, page }, signal);
+      return { data: res.Page.media.map((item) => normalizeAnime(item, "anilist")) };
+    },
+    async () => {
+      const offset = (page - 1) * 12;
+      const qParam = query ? `&filter[text]=${encodeURIComponent(query)}` : "";
+      const res = await fetch(`${KITSU_BASE}/anime?page[limit]=12&page[offset]=${offset}${qParam}`, { signal });
+      if (!res.ok) throw new Error("Kitsu failed");
+      const json = await res.json();
+      return { data: json.data.map((item) => normalizeAnime(item, "kitsu")) };
+    },
+    signal
+  );
 }
 
 export function getAnime(id, signal) {
-  if (!id) throw new Error("Anime ID is required");
-  return request(`/anime/${id}/full`, signal);
+  return fetchWithFallback(
+    async () => fetchJikan(`/anime/${id}/full`, signal),
+    async () => {
+      const gql = `
+        query ($id: Int) {
+          Media(id: $id, type: ANIME) {
+            id title { english romaji native } coverImage { large extraLarge }
+            averageScore format episodes status description genres
+          }
+        }`;
+      const res = await queryAniList(gql, { id: parseInt(id, 10) }, signal);
+      return { data: normalizeAnime(res.Media, "anilist") };
+    },
+    async () => {
+      const res = await fetch(`${KITSU_BASE}/anime/${id}`, { signal });
+      if (!res.ok) throw new Error("Kitsu failed");
+      const json = await res.json();
+      return { data: normalizeAnime(json.data, "kitsu") };
+    },
+    signal
+  );
 }
