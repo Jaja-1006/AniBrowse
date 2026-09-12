@@ -41,7 +41,7 @@ export default function AnimeModal({ id, onClose, favorite, onFavorite }) {
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 p-4 backdrop-blur-sm" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="mx-auto mt-8 max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-[#11131a] shadow-2xl">
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
-          <span className="text-xs font-bold uppercase tracking-[.2em] text-violet-300">Anime details</span>
+          <span className="text-xs font-bold uppercase tracking-[.2em] text-orange-300">Anime details</span>
           <button onClick={onClose} className="rounded-lg px-3 py-1 text-xl text-zinc-500 hover:bg-white/5 hover:text-white" aria-label="Close">×</button>
         </div>
 
@@ -53,7 +53,7 @@ export default function AnimeModal({ id, onClose, favorite, onFavorite }) {
           <div className="grid md:grid-cols-[240px_1fr]">
             <div className="bg-zinc-950 p-5">
               <img src={image} alt={anime.title} className="w-full rounded-2xl object-cover shadow-xl" />
-              <button onClick={() => onFavorite(anime)} className={`mt-3 w-full rounded-xl border px-4 py-3 text-sm font-bold ${favorite ? "border-violet-400/30 bg-violet-400/10 text-violet-300" : "border-white/10 bg-white/5 text-zinc-200"}`}>
+              <button onClick={() => onFavorite(anime)} className={`mt-3 w-full rounded-xl border px-4 py-3 text-sm font-bold ${favorite ? "border-orange-400/30 bg-orange-400/10 text-orange-300" : "border-white/10 bg-white/5 text-zinc-200"}`}>
                 {favorite ? "♥ In favorites" : "♡ Add to favorites"}
               </button>
             </div>

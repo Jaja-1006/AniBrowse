@@ -48,7 +48,7 @@ export default function Browse({ favorites, onFavorite, onDetails }) {
   return (
     <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <p className="text-[11px] font-extrabold uppercase tracking-[.22em] text-violet-300">Anime library</p>
+        <p className="text-[11px] font-extrabold uppercase tracking-[.22em] text-orange-300">Anime library</p>
         <h1 className="mt-1 text-3xl font-black tracking-tight">Browse anime</h1>
         <p className="mt-2 text-sm text-zinc-500">Search the catalog or narrow it down with genre and sorting.</p>
       </div>
@@ -56,10 +56,10 @@ export default function Browse({ favorites, onFavorite, onDetails }) {
       <div className="rounded-2xl border border-white/10 bg-white/[.035] p-4 sm:p-5">
         <SearchBar value={query} onChange={setQuery} onSubmit={submit} />
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <select value={genre} onChange={changeFilter(setGenre)} className="h-11 rounded-lg border border-white/10 bg-zinc-900 px-3 text-sm text-zinc-300 outline-none focus:border-violet-400/50">
+          <select value={genre} onChange={changeFilter(setGenre)} className="h-11 rounded-lg border border-white/10 bg-zinc-900 px-3 text-sm text-zinc-300 outline-none focus:border-orange-400/50">
             {GENRES.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
           </select>
-          <select value={sort} onChange={changeFilter(setSort)} className="h-11 rounded-lg border border-white/10 bg-zinc-900 px-3 text-sm text-zinc-300 outline-none focus:border-violet-400/50">
+          <select value={sort} onChange={changeFilter(setSort)} className="h-11 rounded-lg border border-white/10 bg-zinc-900 px-3 text-sm text-zinc-300 outline-none focus:border-orange-400/50">
             {SORT_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
           </select>
         </div>

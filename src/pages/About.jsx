@@ -2,7 +2,7 @@ export default function About() {
   return (
     <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="rounded-3xl border border-white/10 bg-white/[.035] p-6 sm:p-10">
-        <p className="text-[11px] font-extrabold uppercase tracking-[.22em] text-violet-300">Project information</p>
+        <p className="text-[11px] font-extrabold uppercase tracking-[.22em] text-orange-300">Project information</p>
         <h1 className="mt-2 text-3xl font-black tracking-tight">About AniVault</h1>
         <p className="mt-5 text-sm leading-7 text-zinc-400">
           AniVault is a responsive React anime browser built for the INTECH 3112 project requirements.
@@ -23,7 +23,7 @@ export default function About() {
             Jikan is an unofficial, open-source REST API for MyAnimeList data. This app does not host anime video files
             or provide streaming functionality.
           </p>
-          <a href="https://jikan.moe/" target="_blank" rel="noreferrer" className="mt-4 inline-block text-sm font-bold text-violet-300 hover:text-violet-200">
+          <a href="https://jikan.moe/" target="_blank" rel="noreferrer" className="mt-4 inline-block text-sm font-bold text-orange-300 hover:text-orange-200">
             Jikan API ↗
           </a>
         </div>

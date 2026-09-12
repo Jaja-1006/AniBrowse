@@ -30,15 +30,15 @@ export default function Home({ favorites, onFavorite, onDetails, goBrowse }) {
     <main>
       <section className="mx-auto max-w-7xl px-4 pb-14 pt-14 sm:px-6 lg:px-8 lg:pt-20">
         <div className="max-w-3xl">
-          <p className="mb-4 text-xs font-extrabold uppercase tracking-[.25em] text-violet-300">Your anime discovery hub</p>
+          <p className="mb-4 text-xs font-extrabold uppercase tracking-[.25em] text-orange-300">Your anime discovery hub</p>
           <h1 className="text-4xl font-black tracking-tight text-white sm:text-6xl">
-            Discover your next <span className="bg-gradient-to-r from-violet-300 to-fuchsia-300 bg-clip-text text-transparent">favorite anime.</span>
+            Discover your next <span className="bg-gradient-to-r from-orange-300 to-yellow-200 bg-clip-text text-transparent">favorite anime.</span>
           </h1>
           <p className="mt-5 max-w-2xl text-sm leading-7 text-zinc-400 sm:text-base">
             Search, filter, explore details, and save anime to your personal favorites. Data is retrieved live from the Jikan REST API.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
-            <button onClick={goBrowse} className="rounded-xl bg-violet-500 px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-violet-950/30 hover:bg-violet-400">
+            <button onClick={goBrowse} className="rounded-xl bg-orange-500 px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-orange-950/30 hover:bg-orange-400">
               Browse anime
             </button>
             <button onClick={() => document.getElementById("top-anime")?.scrollIntoView()} className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-extrabold text-zinc-200 hover:bg-white/10">
@@ -67,7 +67,7 @@ export default function Home({ favorites, onFavorite, onDetails, goBrowse }) {
 function SectionTitle({ eyebrow, title }) {
   return (
     <div className="mb-6">
-      <p className="text-[11px] font-extrabold uppercase tracking-[.22em] text-violet-300">{eyebrow}</p>
+      <p className="text-[11px] font-extrabold uppercase tracking-[.22em] text-orange-300">{eyebrow}</p>
       <h2 className="mt-1 text-2xl font-black tracking-tight text-white">{title}</h2>
     </div>
   );

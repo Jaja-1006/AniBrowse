@@ -5,11 +5,11 @@ export default function Logo() {
       onClick={() => window.dispatchEvent(new CustomEvent("navigate", { detail: "home" }))}
       aria-label="Go to home"
     >
-      <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-lg font-black shadow-lg shadow-violet-950/30">
+      <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-orange-600 to-yellow-500 text-lg font-black shadow-lg shadow-orange-950/30">
         A
       </span>
       <span className="hidden text-lg font-extrabold tracking-tight sm:block">
-        Ani<span className="text-violet-400">Vault</span>
+        Ani<span className="text-orange-400">Vault</span>
       </span>
     </button>
   );
