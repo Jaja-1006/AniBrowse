@@ -25,6 +25,35 @@ const KITSU_SORT_MAP = {
   start_date: "-startDate"
 };
 
+const MONTHS = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function fmtDatePart(d) {
+  if (!d?.year) return null;
+  if (d.month && d.day) return `${MONTHS[d.month]} ${d.day}, ${d.year}`;
+  if (d.month) return `${MONTHS[d.month]} ${d.year}`;
+  return `${d.year}`;
+}
+
+// AniList gives separate start/end date objects; Jikan's modal expects a
+// single "Apr 7, 2013 to Sep 29, 2013"-style string.
+function formatAniListAired(start, end) {
+  const s = fmtDatePart(start);
+  if (!s) return null;
+  const e = fmtDatePart(end);
+  return e ? `${s} to ${e}` : `${s} to ?`;
+}
+
+// AniList enums come back as MANGA / LIGHT_NOVEL / etc.
+function titleCaseFromEnum(value) {
+  if (!value) return null;
+  return value.toLowerCase().split("_").map((w) => w[0].toUpperCase() + w.slice(1)).join(" ");
+}
+
+function formatKitsuAired(start, end) {
+  if (!start) return null;
+  return end && end !== start ? `${start} to ${end}` : `${start} to ?`;
+}
+
 function normalizeAnime(item, source) {
   if (source === "jikan") return item;
 
@@ -45,7 +74,15 @@ function normalizeAnime(item, source) {
       episodes: item.episodes,
       status: item.status,
       synopsis: item.description ? item.description.replace(/<[^>]*>?/gm, '') : "",
-      genres: item.genres ? item.genres.map((g) => ({ name: g })) : []
+      genres: item.genres ? item.genres.map((g) => ({ name: g })) : [],
+      year: item.seasonYear || item.startDate?.year || null,
+      aired: { string: formatAniListAired(item.startDate, item.endDate) },
+      duration: item.duration ? `${item.duration} min per ep` : null,
+      // AniList doesn't publish MAL-style content ratings (R-17+, PG-13, etc.)
+      rating: null,
+      source: titleCaseFromEnum(item.source),
+      studios: item.studios?.nodes?.map((s) => ({ name: s.name })) || [],
+      url: item.siteUrl || null
     };
   }
 
@@ -67,7 +104,16 @@ function normalizeAnime(item, source) {
       episodes: attr.episodeCount,
       status: attr.status,
       synopsis: attr.synopsis || "",
-      genres: []
+      genres: [],
+      year: attr.startDate ? Number(attr.startDate.slice(0, 4)) : null,
+      aired: { string: formatKitsuAired(attr.startDate, attr.endDate) },
+      duration: attr.episodeLength ? `${attr.episodeLength} min per ep` : null,
+      rating: attr.ageRating ? `${attr.ageRating}${attr.ageRatingGuide ? " - " + attr.ageRatingGuide : ""}` : null,
+      // Kitsu needs a separate relationship call for studio credits, so this
+      // stays empty on the fallback path rather than firing an extra request.
+      source: null,
+      studios: [],
+      url: attr.slug ? `https://kitsu.io/anime/${attr.slug}` : null
     };
   }
 
@@ -237,6 +283,9 @@ export function getAnime(id, signal) {
           Media(id: $id, type: ANIME) {
             id title { english romaji native } coverImage { large extraLarge }
             averageScore format episodes status description genres
+            seasonYear startDate { year month day } endDate { year month day }
+            duration source siteUrl
+            studios(isMain: true) { nodes { name } }
           }
         }`;
       const res = await queryAniList(gql, { id: parseInt(id, 10) }, signal);

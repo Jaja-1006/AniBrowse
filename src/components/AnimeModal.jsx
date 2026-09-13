@@ -82,7 +82,7 @@ export default function AnimeModal({ id, onClose, favorite, onFavorite }) {
               </div>
               {anime.url && (
                 <a href={anime.url} target="_blank" rel="noreferrer" className="mt-6 inline-flex rounded-lg bg-white px-4 py-2.5 text-xs font-extrabold text-zinc-950 hover:bg-zinc-200">
-                  View source on MyAnimeList ↗
+                  View source on {sourceLabel(anime.url)} ↗
                 </a>
               )}
             </div>
@@ -91,6 +91,18 @@ export default function AnimeModal({ id, onClose, favorite, onFavorite }) {
       </div>
     </div>
   );
+}
+
+function sourceLabel(url) {
+  try {
+    const host = new URL(url).hostname;
+    if (host.includes("myanimelist")) return "MyAnimeList";
+    if (host.includes("anilist")) return "AniList";
+    if (host.includes("kitsu")) return "Kitsu";
+    return host;
+  } catch {
+    return "MyAnimeList";
+  }
 }
 
 function Info({ label, value }) {
