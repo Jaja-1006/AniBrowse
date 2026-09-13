@@ -7,6 +7,7 @@ import Favorites from "./pages/Favorites";
 import About from "./pages/About";
 
 const STORAGE_KEY = "anivault:favorites";
+const PAGES = ["home", "browse", "favorites", "about"];
 
 function readFavorites() {
   try {
@@ -17,10 +18,37 @@ function readFavorites() {
   }
 }
 
+function pageFromHash() {
+  const hash = window.location.hash.replace("#", "");
+  return PAGES.includes(hash) ? hash : "home";
+}
+
 export default function App() {
-  const [page, setPage] = useState("home");
+  const [page, setPageState] = useState(pageFromHash);
   const [favorites, setFavorites] = useState(readFavorites);
   const [selectedId, setSelectedId] = useState(null);
+
+  // Changing location.hash pushes a real browser history entry, so
+  // Back/Forward now step through Home -> Browse -> Favorites etc.
+  // instead of jumping straight out of the app.
+  const setPage = (next) => {
+    if (next === pageFromHash()) return;
+    window.location.hash = next;
+  };
+
+  useEffect(() => {
+    // Anchor a hash on first load (replace, not push, so the very first
+    // Back press still leaves the app the way users expect).
+    if (!window.location.hash) {
+      window.history.replaceState(null, "", `#${page}`);
+    }
+    const onHashChange = () => {
+      setPageState(pageFromHash());
+      window.scrollTo(0, 0);
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
