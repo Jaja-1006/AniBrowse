@@ -169,6 +169,8 @@ export function getSeasonalAnime(signal) {
 }
 
 export function searchAnime({ query = "", page = 1, genre = "", sort = "popularity" } = {}, signal) {
+  const genreName = GENRE_NAME_BY_ID[genre] || null;
+
   return fetchWithFallback(
     async () => {
       const params = new URLSearchParams({ page: String(page), limit: "12", sfw: "true", sort: "desc" });
@@ -179,21 +181,28 @@ export function searchAnime({ query = "", page = 1, genre = "", sort = "populari
     },
     async () => {
       const gql = `
-        query ($search: String, $page: Int) {
+        query ($search: String, $page: Int, $genre: String, $sort: [MediaSort]) {
           Page(page: $page, perPage: 12) {
-            media(type: ANIME, search: $search) {
+            media(type: ANIME, search: $search, genre: $genre, sort: $sort) {
               id title { english romaji native } coverImage { large extraLarge }
               averageScore format episodes status description genres
             }
           }
         }`;
-      const res = await queryAniList(gql, { search: query || undefined, page }, signal);
+      const res = await queryAniList(gql, {
+        search: query || undefined,
+        page,
+        genre: genreName || undefined,
+        sort: [ANILIST_SORT_MAP[sort] || "POPULARITY_DESC"]
+      }, signal);
       return { data: res.Page.media.map((item) => normalizeAnime(item, "anilist")) };
     },
     async () => {
       const offset = (page - 1) * 12;
       const qParam = query ? `&filter[text]=${encodeURIComponent(query)}` : "";
-      const res = await fetch(`${KITSU_BASE}/anime?page[limit]=12&page[offset]=${offset}${qParam}`, { signal });
+      const genreParam = genreName ? `&filter[categories]=${encodeURIComponent(genreName.toLowerCase().replace(/\s+/g, "-"))}` : "";
+      const sortParam = `&sort=${encodeURIComponent(KITSU_SORT_MAP[sort] || "-userCount")}`;
+      const res = await fetch(`${KITSU_BASE}/anime?page[limit]=12&page[offset]=${offset}${qParam}${genreParam}${sortParam}`, { signal });
       if (!res.ok) throw new Error("Kitsu failed");
       const json = await res.json();
       return { data: json.data.map((item) => normalizeAnime(item, "kitsu")) };
