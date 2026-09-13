@@ -59,7 +59,7 @@ export default function App() {
 
       <footer className="border-t border-white/10 py-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 text-xs text-zinc-600 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-          <span>AniVault • INTECH 3112 Project</span>
+          <span>AniBrowse • INTECH 3112 Project</span>
           <span>Anime data via Jikan / MyAnimeList</span>
         </div>
       </footer>
