@@ -2,6 +2,29 @@ const JIKAN_BASE = "https://api.jikan.moe/v4";
 const ANILIST_BASE = "https://graphql.anilist.co";
 const KITSU_BASE = "https://kitsu.io/api/edge";
 
+import { GENRES } from "../data";
+
+// Jikan genre IDs -> display name, so AniList/Kitsu fallbacks can
+// filter by genre too (they don't understand MAL genre IDs).
+const GENRE_NAME_BY_ID = Object.fromEntries(GENRES.filter((g) => g.id).map((g) => [g.id, g.name]));
+
+// Our SORT_OPTIONS values -> each backend's own sort vocabulary.
+const ANILIST_SORT_MAP = {
+  popularity: "POPULARITY_DESC",
+  score: "SCORE_DESC",
+  title: "TITLE_ROMAJI",
+  rank: "SCORE_DESC",
+  start_date: "START_DATE_DESC"
+};
+
+const KITSU_SORT_MAP = {
+  popularity: "-userCount",
+  score: "-averageRating",
+  title: "canonicalTitle",
+  rank: "-averageRating",
+  start_date: "-startDate"
+};
+
 function normalizeAnime(item, source) {
   if (source === "jikan") return item;
 
