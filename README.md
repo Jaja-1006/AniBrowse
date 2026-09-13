@@ -1,4 +1,4 @@
-# AniVault — Anime Browser
+# AniBrowse — Anime Browser
 
 A responsive anime browser built with **React + Tailwind CSS + Fetch API**, using the **Jikan REST API v4**.
 
