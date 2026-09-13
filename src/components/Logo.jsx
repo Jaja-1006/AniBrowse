@@ -1,3 +1,6 @@
+import React from 'react';
+import logoImg from '../assets/ab-logo.jpg';
+
 export default function Logo() {
   return (
     <button
