@@ -9,7 +9,7 @@ export default function Logo() {
         A
       </span>
       <span className="hidden text-lg font-extrabold tracking-tight sm:block">
-        Ani<span className="text-orange-400">Vault</span>
+        Ani<span className="text-orange-400">Browse</span>
       </span>
     </button>
   );
