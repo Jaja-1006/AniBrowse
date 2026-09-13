@@ -1,5 +1,5 @@
 import React from 'react';
-import logoImg from '../assets/ab-logo.jpg';
+import logoImg from '../assets/ab-logo.png';
 
 export default function Logo() {
   return (
