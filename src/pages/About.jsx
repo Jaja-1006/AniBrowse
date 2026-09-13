@@ -3,9 +3,9 @@ export default function About() {
     <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="rounded-3xl border border-white/10 bg-white/[.035] p-6 sm:p-10">
         <p className="text-[11px] font-extrabold uppercase tracking-[.22em] text-orange-300">Project information</p>
-        <h1 className="mt-2 text-3xl font-black tracking-tight">About AniVault</h1>
+        <h1 className="mt-2 text-3xl font-black tracking-tight">About AniBrowse</h1>
         <p className="mt-5 text-sm leading-7 text-zinc-400">
-          AniVault is a responsive React anime browser built for the INTECH 3112 project requirements.
+          AniBrowse is a responsive React anime browser built for the INTECH 3112 project requirements.
           It demonstrates reusable React components, state, effects, event handling, Tailwind CSS,
           responsive layouts, and asynchronous API retrieval.
         </p>
