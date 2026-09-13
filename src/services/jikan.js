@@ -183,6 +183,7 @@ export function searchAnime({ query = "", page = 1, genre = "", sort = "populari
       const gql = `
         query ($search: String, $page: Int, $genre: String, $sort: [MediaSort]) {
           Page(page: $page, perPage: 12) {
+            pageInfo { total lastPage currentPage }
             media(type: ANIME, search: $search, genre: $genre, sort: $sort) {
               id title { english romaji native } coverImage { large extraLarge }
               averageScore format episodes status description genres
@@ -195,7 +196,13 @@ export function searchAnime({ query = "", page = 1, genre = "", sort = "populari
         genre: genreName || undefined,
         sort: [ANILIST_SORT_MAP[sort] || "POPULARITY_DESC"]
       }, signal);
-      return { data: res.Page.media.map((item) => normalizeAnime(item, "anilist")) };
+      return {
+        data: res.Page.media.map((item) => normalizeAnime(item, "anilist")),
+        pagination: {
+          last_visible_page: res.Page.pageInfo?.lastPage || 1,
+          items: { total: res.Page.pageInfo?.total }
+        }
+      };
     },
     async () => {
       const offset = (page - 1) * 12;
@@ -205,7 +212,17 @@ export function searchAnime({ query = "", page = 1, genre = "", sort = "populari
       const res = await fetch(`${KITSU_BASE}/anime?page[limit]=12&page[offset]=${offset}${qParam}${genreParam}${sortParam}`, { signal });
       if (!res.ok) throw new Error("Kitsu failed");
       const json = await res.json();
-      return { data: json.data.map((item) => normalizeAnime(item, "kitsu")) };
+      // Kitsu doesn't always return a total count. When it does, use it for
+      // an exact page count; otherwise assume another page exists as long
+      // as this one came back full, so "Next" keeps working either way.
+      const total = json.meta?.count;
+      const lastPage = total
+        ? Math.max(1, Math.ceil(total / 12))
+        : (json.data.length === 12 ? page + 1 : page);
+      return {
+        data: json.data.map((item) => normalizeAnime(item, "kitsu")),
+        pagination: { last_visible_page: lastPage, items: { total } }
+      };
     },
     signal
   );
