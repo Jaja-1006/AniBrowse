@@ -35,7 +35,7 @@ export default function Home({ favorites, onFavorite, onDetails, goBrowse }) {
             Discover your next <span className="bg-gradient-to-r from-orange-300 to-yellow-200 bg-clip-text text-transparent">favorite anime.</span>
           </h1>
           <p className="mt-5 max-w-2xl text-sm leading-7 text-zinc-400 sm:text-base">
-            Search, filter, explore details, and save anime to your personal favorites. Data is retrieved live from the Jikan REST API.
+            Search, filter, explore details, and save anime to your personal favorites.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <button onClick={goBrowse} className="rounded-xl bg-orange-500 px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-orange-950/30 hover:bg-orange-400">
